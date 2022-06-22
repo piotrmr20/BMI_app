@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<head>
+<title>BMI-CALCULATOR</title>
+<style>
+    .moduly {
+        display: flex;
+        justify-content: space-evenly;
+        padding: 10px;
+        margin: 10px;
+        column-gap: 30px;
+    }
+    .moduly div ul button{
+        background-color: rgba(89, 129, 180, 0.651);
+    }
+    body {
+        background-color: rgba(122, 230, 225, 0.178);
+    }
+</style>
+</head>
+<body>
+<h1 style="text-align: center; margin-bottom: 0px; padding: 5px; font-size: 70px;">KALKULATOR BMI</h1>
+<div class="moduly">
+    <div style="border: 3px solid black; border-radius: 20px; padding: 10px; font-display: left; background-color: rgb(209, 165, 115);">
+        <h1>Podaj dane</h1>
+        <div style="display: flex">
+            <div>
+                <p>Wpisz swoją wagę w kg:
+                <input class="pole1" value="" /></p> 
+                <p>Wpisz swój wzrost w cm:
+                <input class="pole2" value="" /></p>
+            </div>
+            <div style="display: flex; padding-left: 10px">
+                <button class="przycisk">ZATWIERDŹ</button>
+            </div>    
+        </div>
+    </div>
+    <div style="border: 3px solid black; border-radius: 20px; padding: 10px; font-display: left; background-color: rgb(209, 165, 115);">
+        <h1 style="text-align: left; font-weight: bold;">Moduł wynikow</h1>
+        <p>Podana waga to: <span id="podanaWaga"></span> kg</p>
+        <p>Podany wzrost to: <span id="podanyWzrost"></span> cm</p>
+        <p style="text-align: left; font-size:xx-large; font-weight: 900">BMI: <span id="twojeBMI"></span></p>
+        <p id="statusBMI" style="font-weight:900"></p>
+    </div>
+    <div style="border: 3px solid black; border-radius: 20px; padding: 10px; font-display: left; background-color: rgb(209, 165, 115);">
+        <h1>Moduł historii</h1>
+        <ul id="listaWynikow"></ul><br><br>
+        <p style="text-align: left; font-weight: 900; font-size: large;">Średnia BMI to: <span id="sredniaBMI"></span></p>
+        <button id="clearing">Wyczyść historię</button>
+    </div>
+</div>
+<script>
+    
+let przycisk = document.querySelector(".przycisk");
+let przycisk2 = document.querySelector("#clearing");
+let resultsHistory = [];
+
+function restoringData () {
+    if (localStorage.length != 0) {
+        let resultsHistory2 = localStorage.getItem('myHistory');
+        resultsHistory2 = JSON.parse(resultsHistory2);
+        console.log(resultsHistory2);
+        
+            for (let j=0; j < resultsHistory2.length; j++) {
+
+                let resultBMI = resultsHistory2[j].obliczoneBMI;
+                let resultWeight = resultsHistory2[j].waga;
+                let resultHeight = resultsHistory2[j].wzrost;
+
+                node = document.createElement("button");
+            
+                    function wcisnietyPrzyciskWewn (j) {
+                        document.getElementById("podanaWaga").innerHTML = resultWeight;
+                        document.getElementById("podanyWzrost").innerHTML = resultHeight;
+                        document.getElementById("twojeBMI").innerHTML = resultBMI;
+                    }
+                    node.addEventListener("click", wcisnietyPrzyciskWewn);
+
+                    let textnode = document.createTextNode("Pomiar z "+resultsHistory2[j].dataICzasTeraz);
+                    node.appendChild(textnode);
+                    document.getElementById("listaWynikow").appendChild(node);
+
+                    resultsHistory2.forEach(j => {
+                resultsHistory.push(j);
+            });
+            }
+    }
+}
+window.onload = restoringData;     
+
+    function wcisnietyPrzycisk() {
+        let pierwszePole = document.querySelector(".pole1");
+        let wartoscWPierwszymPolu = parseFloat(pierwszePole.value);
+        let drugiePole = document.querySelector(".pole2");
+        let wartoscWDrugimPolu = parseFloat(drugiePole.value);
+        let pierwszePoleNieBlad = (wartoscWPierwszymPolu >= 40 && wartoscWPierwszymPolu <= 200 && wartoscWPierwszymPolu != NaN);
+        let drugiePoleNieBlad = (wartoscWDrugimPolu >= 120 && wartoscWDrugimPolu <= 240 && wartoscWDrugimPolu != NaN);
+        let BMI = Number(Math.round((wartoscWPierwszymPolu) / ((wartoscWDrugimPolu/100) ** 2)+'e+2')+'e-2');
+        
+            if (pierwszePoleNieBlad) {
+            document.getElementById("podanaWaga").innerHTML = wartoscWPierwszymPolu;
+            } else {
+            document.getElementById("podanaWaga").innerHTML = "waga nie jest poprawna";
+            }
+            if (drugiePoleNieBlad) {
+            document.getElementById("podanyWzrost").innerHTML = wartoscWDrugimPolu;
+            } else {
+            document.getElementById("podanyWzrost").innerHTML = "wzrost nie jest poprawny";
+            }
+            if (pierwszePoleNieBlad && drugiePoleNieBlad) {
+            document.getElementById("twojeBMI").innerHTML = BMI;
+            } else {
+            document.getElementById("twojeBMI").innerHTML = "Błąd!";
+            }
+        pierwszePole.value = "";
+        drugiePole.value = "";
+        
+        let data = new Date();
+        let czaspomiaru = data.getDate()+"."+data.getMonth()+1+"."+data.getFullYear()+"r"+", "+data.getHours()+":"+ data.getMinutes()+":"+data.getSeconds();
+
+        if (pierwszePoleNieBlad && drugiePoleNieBlad) {
+            resultsHistory.push({
+            waga: wartoscWPierwszymPolu,
+            wzrost: wartoscWDrugimPolu,
+            obliczoneBMI: BMI,
+            dataICzasTeraz: czaspomiaru,
+            })  
+        }
+
+        localStorage.setItem('myHistory', JSON.stringify(resultsHistory));
+        
+        if (resultsHistory.length >= 2 && BMI > resultsHistory[resultsHistory.length-2].obliczoneBMI) {
+            document.getElementById("statusBMI").innerHTML = "TWOJE BMI WZROSŁO! WEŹ SIĘ ZA SIEBIE!";
+        } 
+        if (resultsHistory.length >= 2 && BMI < resultsHistory[resultsHistory.length-2].obliczoneBMI && pierwszePoleNieBlad && drugiePoleNieBlad) {
+            document.getElementById("statusBMI").innerHTML = "TWOJE BMI SPADŁO :) SUPER!";
+        } 
+        if (pierwszePoleNieBlad != true || drugiePoleNieBlad != true){
+            document.getElementById("statusBMI").innerHTML = " ";
+        }  
+        
+        let sumaBMI = 0;
+        for (let i=0; i < resultsHistory.length; i++) {
+            let resultBMI = resultsHistory[i].obliczoneBMI;
+            let resultWeight = resultsHistory[i].waga;
+            let resultHeight = resultsHistory[i].wzrost;
+
+                if (resultBMI != NaN) {
+                    sumaBMI += resultBMI;
+                } else {
+                    sumaBMI = sumaBMI;
+                }
+                if (pierwszePoleNieBlad && drugiePoleNieBlad && i === resultsHistory.length-1) {
+                    node = document.createElement("button");
+            
+                    function wcisnietyPrzyciskWewn (i) {
+                        document.getElementById("podanaWaga").innerHTML = resultWeight;
+                        document.getElementById("podanyWzrost").innerHTML = resultHeight;
+                        document.getElementById("twojeBMI").innerHTML = resultBMI;
+                    }
+                    node.addEventListener("click", wcisnietyPrzyciskWewn);
+
+                    let textnode = document.createTextNode("Pomiar z "+resultsHistory[resultsHistory.length-1].dataICzasTeraz);
+                    node.appendChild(textnode);
+                    document.getElementById("listaWynikow").appendChild(node);
+                }  
+        }
+        let avgBMI = Number(Math.round((sumaBMI / resultsHistory.length)+'e+2')+'e-2');
+        document.getElementById("sredniaBMI").innerHTML = avgBMI;   
+    }
+    przycisk.addEventListener("click", wcisnietyPrzycisk);
+  
+    przycisk2.addEventListener("click", function(){
+        localStorage.clear();
+        resultsHistory = [];
+        var e = document.querySelector("#listaWynikow");
+        var child = e.lastElementChild; 
+                while (child) {
+                e.removeChild(child);
+                child = e.lastElementChild;
+                };
+        document.querySelector("#sredniaBMI").innerHTML = " ";
+        document.querySelector("#podanaWaga").innerHTML = " ";
+        document.querySelector("#podanyWzrost").innerHTML = " ";
+        document.querySelector("#twojeBMI").innerHTML = " ";
+        document.querySelector("#statusBMI").innerHTML = " ";
+    });
+</script>
+</body>
+</html>
